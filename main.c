@@ -1,81 +1,75 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "node.h"
+
+#include "waiting-line.h"
 
 int main()
 {
-	// Lists here
-    struct person * personInWaitingLine = NULL;
-    struct person * personAtCashDeskOne = NULL;
-    struct person * personAtCashDeskTwo = NULL;
-    char personName;
-    do{
-        printf(": ");
-        scanf(" %c", &personName);
-
-        // Add person
-        if(personName != '-'){
-            personInWaitingLine = append(personInWaitingLine, personName);
-        }
-    } while(personName != '-');
-
+    char humanInput;
     char command;
 
-    if (NULL == personInWaitingLine) {
-        return 0;
-    }
+    struct waitingLine *mainWaitingLine = (struct waitingLine *) malloc(sizeof(struct waitingLine));
+    struct waitingLine *desk1WaitingLine = (struct waitingLine *) malloc(sizeof(struct waitingLine));
+    struct waitingLine *desk2WaitingLine = (struct waitingLine *) malloc(sizeof(struct waitingLine));
+    mainWaitingLine->name = 'M';
+    desk1WaitingLine->name = '1';
+    desk2WaitingLine->name = '2';
+
+    do{
+        printf(": ");
+        scanf(" %c", &humanInput);
+
+
+
+        if('-' != humanInput){
+            struct customer *customer = (struct customer *) malloc(sizeof(struct customer));
+            customer->name = humanInput;
+            addToWaitingLine(mainWaitingLine, customer);
+        }
+    } while(humanInput != '-');
+
+
+    outputWaitingLineInfo(mainWaitingLine);
 
     do
     {
-        // Print here
-        print(personInWaitingLine, personAtCashDeskOne, personAtCashDeskTwo);
-
-
         printf(": ");
         scanf(" %c", &command);
 
-        switch(command)
-        {
+        switch(command) {
             case 'a':
-            {
-                // anstellen
-                //node *nodePerson = getFirst(persons);
-                char personName = getFirst(personInWaitingLine);
-
-                personInWaitingLine = deleteFirst(personInWaitingLine);
-
-                if (sizeOf(personAtCashDeskOne) <= sizeOf(personAtCashDeskTwo))
-                {
-                    if (NULL == personAtCashDeskOne) {
-                        personAtCashDeskOne = personInWaitingLine;
-
-                    } else {
-                        personAtCashDeskOne->next = personInWaitingLine;
-                    }
-
-
-                    //personAtCashDeskOne = append(personAtCashDeskOne, personName);
+                if (0 == numberOfCustomersInWaitingLine(mainWaitingLine)) {
+                    printf("main waiting line is empty\r\n");
+                    break;
                 }
-                else
-                {
-                    personAtCashDeskTwo = append(personAtCashDeskTwo, personName);
+                if (numberOfCustomersInWaitingLine(desk1WaitingLine) <= numberOfCustomersInWaitingLine(desk2WaitingLine)) {
+                    switchWaitingLine(mainWaitingLine, desk1WaitingLine);
+                } else {
+                    switchWaitingLine(mainWaitingLine, desk2WaitingLine);
                 }
                 break;
-            }
-
             case '1':
-                // kassa1
-                personAtCashDeskOne = deleteFirst(personAtCashDeskOne);
+                if (0 == numberOfCustomersInWaitingLine(desk1WaitingLine)) {
+                    printf("desk 1  waiting line is empty\r\n");
+                    break;
+                }
+                releaseFirstFromWaitingLine(desk1WaitingLine);
                 break;
             case '2':
-                // kassa2
-                personAtCashDeskTwo = deleteFirst(personAtCashDeskTwo);
+                if (0 == numberOfCustomersInWaitingLine(desk2WaitingLine)) {
+                    printf("desk 2  waiting line is empty\r\n");
+                    break;
+                }
+                releaseFirstFromWaitingLine(desk2WaitingLine);
                 break;
         }
-    } while ('-' != command);
 
-    // free list
+        outputWaitingLineInfo(mainWaitingLine);
+        outputWaitingLineInfo(desk1WaitingLine);
+        outputWaitingLineInfo(desk2WaitingLine);
+
+    } while ('-' != command);
 
     return 0;
 }
